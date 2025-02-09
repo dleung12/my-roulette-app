@@ -5,10 +5,10 @@ export default function RouletteTracker() {
 
   const getRouletteDetails = (num) => {
     let color = "Black";
-    let oddEven = "Neither";
-    let highLow = "Neither";
-    let column = "None";
-    let group = "None";
+    let oddEven = "0";
+    let highLow = "0";
+    let column = "0";
+    let group = "0";
 
     if (num === 0) {
       color = "Green";
@@ -22,19 +22,19 @@ export default function RouletteTracker() {
     }
 
     if ([1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31, 34].includes(num)) {
-      column = "1st Column";
+      column = "1";
     } else if ([2, 5, 8, 11, 14, 17, 20, 23, 26, 29, 32, 35].includes(num)) {
-      column = "2nd Column";
+      column = "2";
     } else if ([3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36].includes(num)) {
-      column = "3rd Column";
+      column = "3";
     }
 
     if (num >= 1 && num <= 12) {
-      group = "Group 1";
+      group = "S";
     } else if (num >= 13 && num <= 24) {
-      group = "Group 2";
+      group = "M";
     } else if (num >= 25 && num <= 36) {
-      group = "Group 3";
+      group = "L";
     }
 
     return { color, oddEven, highLow, column, group };
@@ -52,6 +52,24 @@ export default function RouletteTracker() {
     let details = getRouletteDetails(num);
     setNumbers([...numbers, { gameCount: numbers.length + 1, number: num, ...details }]);
   };
+
+  const last20Games = numbers.slice(-20);
+  const last80Games = numbers.slice(-80);
+
+  const countOccurrences = (numSet) => {
+    const counts = {};
+    numSet.forEach(({ number }) => {
+      counts[number] = (counts[number] || 0) + 1;
+    });
+    return counts;
+  };
+
+  const last20Counts = countOccurrences(last20Games);
+  const last80Numbers = new Set(last80Games.map(({ number }) => number));
+
+  const hotNumbers = Object.keys(last20Counts).filter((num) => last20Counts[num] >= 3);
+  const coldNumbers = [...Array(37).keys()].filter((num) => !last80Numbers.has(num));
+
 
   return (
     <div className="p-6 max-w-3xl mx-auto bg-gray-100 rounded-lg shadow-lg">
@@ -90,6 +108,12 @@ export default function RouletteTracker() {
           </tbody>
         </table>
       </div>
+
+      <div className="mt-6">
+        <h3 className="text-lg font-semibold">🔥 Hot Numbers: {hotNumbers.join(", ")}</h3>
+        <h3 className="text-lg font-semibold">❄️ Cold Numbers: {coldNumbers.join(", ")}</h3>
+      </div>
+
     </div>
   );
 }
