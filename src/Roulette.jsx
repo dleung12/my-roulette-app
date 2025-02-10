@@ -67,9 +67,10 @@ export default function RouletteTracker() {
   const last20Counts = countOccurrences(last20Games);
   const last80Numbers = new Set(last80Games.map(({ number }) => number));
 
-  const hotNumbers = Object.keys(last20Counts).filter((num) => last20Counts[num] >= 3);
+  const hotNumbers = Object.keys(last20Counts).filter((num) => last20Counts[num] >= 2);
   const coldNumbers = [...Array(37).keys()].filter((num) => !last80Numbers.has(num));
 
+  
 
   return (
     <div className="p-6 max-w-3xl mx-auto bg-gray-100 rounded-lg shadow-lg">
