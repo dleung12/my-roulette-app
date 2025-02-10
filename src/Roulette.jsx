@@ -1,14 +1,15 @@
 import { useState } from "react";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
 export default function RouletteTracker() {
   const [numbers, setNumbers] = useState([]);
 
   const getRouletteDetails = (num) => {
     let color = "Black";
-    let oddEven = "0";
-    let highLow = "0";
-    let column = "0";
-    let group = "0";
+    let oddEven = "Neither";
+    let highLow = "Neither";
+    let column = "None";
+    let group = "None";
 
     if (num === 0) {
       color = "Green";
@@ -40,6 +41,46 @@ export default function RouletteTracker() {
     return { color, oddEven, highLow, column, group };
   };
 
+  const countOccurrences = (lastN) => {
+    const recentNumbers = numbers.slice(-lastN).map(n => n.number);
+    const counts = {};
+    
+    for (let num of recentNumbers) {
+      counts[num] = (counts[num] || 0) + 1;
+    }
+
+    return counts;
+  };
+
+  const getCategorizedNumbers = () => {
+    const last20Counts = countOccurrences(20);
+    const last80Numbers = numbers.slice(-80).map(n => n.number);
+
+    let appearedOnce = [];
+    let appearedTwice = [];
+    let appearedThreeOrMore = [];
+    let notAppearedIn80 = [];
+    let hotNumbers = [];
+    let coldNumbers = [];
+
+    for (let i = 0; i <= 36; i++) {
+      if (last20Counts[i] === 1) appearedOnce.push(i);
+      else if (last20Counts[i] === 2) appearedTwice.push(i);
+      else if (last20Counts[i] >= 3) appearedThreeOrMore.push(i);
+
+      if (!last80Numbers.includes(i)) notAppearedIn80.push(i);
+    }
+
+    // Determine Hot & Cold Numbers
+    const sortedNumbers = Object.entries(last20Counts).sort((a, b) => b[1] - a[1]);
+    if (sortedNumbers.length > 0) {
+      hotNumbers = sortedNumbers.slice(0, 3).map(([num]) => num);
+      coldNumbers = sortedNumbers.filter(([_, count]) => count === 1).map(([num]) => num);
+    }
+
+    return { appearedOnce, appearedTwice, appearedThreeOrMore, notAppearedIn80, hotNumbers, coldNumbers };
+  };
+
   const addNumber = () => {
     let input = prompt("Enter a roulette number (0-36):");
     let num = parseInt(input);
@@ -53,27 +94,16 @@ export default function RouletteTracker() {
     setNumbers([...numbers, { gameCount: numbers.length + 1, number: num, ...details }]);
   };
 
-  const last20Games = numbers.slice(-20);
-  const last80Games = numbers.slice(-80);
+  const { appearedOnce, appearedTwice, appearedThreeOrMore, notAppearedIn80, hotNumbers, coldNumbers } = getCategorizedNumbers();
 
-  const countOccurrences = (numSet) => {
-    const counts = {};
-    numSet.forEach(({ number }) => {
-      counts[number] = (counts[number] || 0) + 1;
-    });
-    return counts;
-  };
-
-  const last20Counts = countOccurrences(last20Games);
-  const last80Numbers = new Set(last80Games.map(({ number }) => number));
-
-  const hotNumbers = Object.keys(last20Counts).filter((num) => last20Counts[num] >= 2);
-  const coldNumbers = [...Array(37).keys()].filter((num) => !last80Numbers.has(num));
-
-  
+  // Prepare data for chart
+  const chartData = Array.from({ length: 37 }, (_, i) => ({
+    number: i,
+    frequency: countOccurrences(20)[i] || 0
+  }));
 
   return (
-    <div className="p-6 max-w-3xl mx-auto bg-gray-100 rounded-lg shadow-lg">
+    <div className="p-6 max-w-2xl mx-auto bg-gray-100 rounded-lg shadow-lg">
       <h2 className="text-2xl font-bold mb-4">🎰 Roulette Tracker</h2>
       <button onClick={addNumber} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700">
         Add Roulette Number
@@ -110,11 +140,31 @@ export default function RouletteTracker() {
         </table>
       </div>
 
-      <div className="mt-6">
-        <h3 className="text-lg font-semibold">🔥 Hot Numbers: {hotNumbers.join(", ")}</h3>
-        <h3 className="text-lg font-semibold">❄️ Cold Numbers: {coldNumbers.join(", ")}</h3>
+
+      <div className="mt-6 p-4 bg-white rounded-lg shadow-md">
+        <h3 className="text-lg font-semibold">📊 Statistics (Last 20 & 80 Games)</h3>
+        <p className="mt-2"><strong>🟡 Appeared Once:</strong> {appearedOnce.join(", ") || "None"}</p>
+        <p><strong>🟠 Appeared Twice:</strong> {appearedTwice.join(", ") || "None"}</p>
+        <p><strong>🔴 Appeared 3+ Times:</strong> {appearedThreeOrMore.join(", ") || "None"}</p>
+        <p className="mt-4"><strong>⚫ Not Appeared (Last 80):</strong> {notAppearedIn80.join(", ") || "None"}</p>
+        <p className="mt-4"><strong>🔥 Hot Numbers (Top 3):</strong> {hotNumbers.join(", ") || "None"}</p>
+        <p className="mt-4"><strong>❄️ Cold Numbers (Only Once):</strong> {coldNumbers.join(", ") || "None"}</p>
       </div>
 
+
+
+      {/* Chart Section */}
+      <div className="mt-6 p-4 bg-white rounded-lg shadow-md">
+        <h3 className="text-lg font-semibold">📊 Live Frequency Chart</h3>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={chartData}>
+            <XAxis dataKey="number" />
+            <YAxis />
+            <Tooltip />
+            <Bar dataKey="frequency" fill="#8884d8" />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 }
