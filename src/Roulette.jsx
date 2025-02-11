@@ -52,6 +52,15 @@ export default function RouletteTracker() {
     return counts;
   };
 
+  const highlightStreak = (column, index) => {
+    if (index < 2) return false;
+    return (
+      numbers[index][column] === numbers[index - 1][column] &&
+      numbers[index - 1][column] === numbers[index - 2][column]
+    );
+  };
+
+
   const getCategorizedNumbers = () => {
     const last20Counts = countOccurrences(20);
     const last80Numbers = numbers.slice(-80).map(n => n.number);
@@ -125,18 +134,34 @@ export default function RouletteTracker() {
             </tr>
           </thead>
           <tbody>
-            {numbers.map((n, i) => (
-              <tr key={i} className="text-center">
-                <td className="border border-gray-300 px-2 py-1">{n.gameCount}</td>
-                <td className="border border-gray-300 px-2 py-1">{n.number}</td>
-                <td className="border border-gray-300 px-2 py-1">{n.color}</td>
-                <td className="border border-gray-300 px-2 py-1">{n.oddEven}</td>
-                <td className="border border-gray-300 px-2 py-1">{n.highLow}</td>
-                <td className="border border-gray-300 px-2 py-1">{n.column}</td>
-                <td className="border border-gray-300 px-2 py-1">{n.group}</td>
-              </tr>
-            ))}
-          </tbody>
+          
+  {numbers.map((n, i) => {
+    const isStreak = 
+      highlightStreak('number', i) || 
+      highlightStreak('color', i) || 
+      highlightStreak('oddEven', i) || 
+      highlightStreak('highLow', i) || 
+      highlightStreak('column', i) || 
+      highlightStreak('group', i);
+
+    return (
+      <tr
+        key={i}
+        className={`${isStreak ? "bg-yellow-300" : ""}
+          ${n.color === "Red" ? "text-red-500" : ""}
+          ${n.color === "Green" ? "text-green-500" : ""}`}
+      >
+        <td className="border border-gray-300 px-2 py-1">{n.gameCount}</td>
+        <td className="border border-gray-300 px-2 py-1">{n.number}</td>
+        <td className="border border-gray-300 px-2 py-1">{n.color}</td>
+        <td className="border border-gray-300 px-2 py-1">{n.oddEven}</td>
+        <td className="border border-gray-300 px-2 py-1">{n.highLow}</td>
+        <td className="border border-gray-300 px-2 py-1">{n.column}</td>
+        <td className="border border-gray-300 px-2 py-1">{n.group}</td>
+      </tr>
+    );
+  })}
+</tbody>
         </table>
       </div>
 
@@ -159,11 +184,16 @@ export default function RouletteTracker() {
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={chartData}>
             <XAxis dataKey="number" />
-            <YAxis />
+            <YAxis 
+        domain={[0, (dataMax) => Math.ceil(dataMax)]} 
+        tickFormatter={(tick) => Math.round(tick)} 
+        allowDecimals={false} 
+      />
             <Tooltip />
             <Bar dataKey="frequency" fill="#8884d8" />
           </BarChart>
         </ResponsiveContainer>
+     
       </div>
     </div>
   );
