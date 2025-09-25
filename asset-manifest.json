@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/my-roulette-app/static/css/main.e6c13ad2.css",
-    "main.js": "/my-roulette-app/static/js/main.ee68f93f.js",
+    "main.js": "/my-roulette-app/static/js/main.ead6c5ad.js",
     "index.html": "/my-roulette-app/index.html",
     "main.e6c13ad2.css.map": "/my-roulette-app/static/css/main.e6c13ad2.css.map",
-    "main.ee68f93f.js.map": "/my-roulette-app/static/js/main.ee68f93f.js.map"
+    "main.ead6c5ad.js.map": "/my-roulette-app/static/js/main.ead6c5ad.js.map"
   },
   "entrypoints": [
     "static/css/main.e6c13ad2.css",
-    "static/js/main.ee68f93f.js"
+    "static/js/main.ead6c5ad.js"
   ]
 }
